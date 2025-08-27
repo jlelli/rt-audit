@@ -1,0 +1,10 @@
+{
+    "cpus": 4,
+    "tasks": 8,
+    "min_period": 20,
+    "max_period": 200,
+    "max_util": 0.6,
+    "total_util": 2.8,
+    "system_overhead": 0.03,
+    "output": "example_taskset.json"
+}

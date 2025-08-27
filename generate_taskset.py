@@ -1,0 +1,267 @@
+#!/usr/bin/env python3
+
+import json
+import random
+import argparse
+import math
+import os
+
+def uunifast(n, u_total):
+    """
+    The UUniFast algorithm for generating task utilizations.
+    This algorithm generates a set of 'n' utilizations that sum to 'u_total'.
+
+    Args:
+        n (int): The number of tasks.
+        u_total (float): The total utilization to be distributed.
+
+    Returns:
+        list: A list of 'n' floating-point utilization values.
+    """
+    utilizations = []
+    sum_u = u_total
+    for i in range(1, n):
+        # Generate a random value and scale it to the remaining utilization
+        next_sum_u = sum_u * random.random() ** (1.0 / (n - i))
+        utilizations.append(sum_u - next_sum_u)
+        sum_u = next_sum_u
+    utilizations.append(sum_u)
+    return utilizations
+
+def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task_util, total_utilization, system_overhead=0.02, verbose=False):
+    """
+    Generates a random taskset in rt-app's JSON format.
+
+    Args:
+        num_cpus (int): The number of CPUs in the system.
+        num_tasks (int): The number of tasks to generate.
+        min_period_ms (int): The minimum task period in milliseconds.
+        max_period_ms (int): The maximum task period in milliseconds.
+        max_task_util (float): The maximum utilization for any single task.
+        total_utilization (float): The target total utilization for the taskset.
+        system_overhead (float): System overhead as fraction (0.0-1.0). Default: 0.02.
+        verbose (bool): Enable verbose output for debugging.
+
+    Returns:
+        str: A JSON formatted string representing the rt-app taskset.
+    """
+    # Define the global configuration for the rt-app workload
+    config = {
+        "global": {
+            "duration": 30,  # Run the simulation for 30 seconds
+            "default_policy": "SCHED_DEADLINE",
+            "log_basename": "taskset_log"
+        },
+        "tasks": {}
+    }
+
+    # Generate task utilizations until they meet the max_task_util constraint
+    attempts = 0
+    while True:
+        attempts += 1
+        task_utils = uunifast(num_tasks, total_utilization)
+        if all(u <= max_task_util for u in task_utils):
+            if verbose:
+                print(f"Generated valid utilizations after {attempts} attempt(s): {[f'{u:.3f}' for u in task_utils]}")
+            break
+
+    # Create the list of CPU affinities for global scheduling
+    cpu_affinity = list(range(num_cpus))
+
+    # Generate parameters for each task
+    for i in range(num_tasks):
+        task_name = f"task_{i}"
+        
+        # Get the pre-calculated utilization for this task
+        utilization = task_utils[i]
+        
+        # Randomly select a period within the specified range (in microseconds)
+        period_us = random.randint(min_period_ms, max_period_ms) * 1000
+        
+        # Calculate the deadline runtime (dl_runtime) based on utilization and period
+        # This represents the maximum time the task can execute within its deadline
+        dl_runtime_us = math.floor(utilization * period_us)
+
+        # Apply system overhead to get the actual runtime for the "run" event
+        # The run event should be smaller than dl_runtime to account for system overhead
+        actual_runtime_us = math.floor(dl_runtime_us * (1.0 - system_overhead))
+
+        # Enforce a minimum runtime. This is a pragmatic trade-off.
+        # Rationale:
+        # 1. Validity: Prevents generating tasks with a runtime of 0, which is invalid for rt-app.
+        # 2. Realism: Tasks with extremely short runtimes (e.g., 1-2µs) are unrealistic,
+        #    as scheduler overhead can be greater than the task's execution time.
+        # 3. Impact: This only affects tasks with very low utilization and/or short periods.
+        #    While it slightly increases the task's actual utilization compared to the
+        #    value from UUniFast, the impact on the total taskset utilization is negligible
+        #    and ensures a more practical and valid taskset.
+        if actual_runtime_us < 10:
+            actual_runtime_us = 10
+            if verbose:
+                print(f"  {task_name}: Adjusted actual runtime from {math.floor(dl_runtime_us * (1.0 - system_overhead))} to {actual_runtime_us} µs (min runtime enforced)")
+        
+        if verbose:
+            print(f"  {task_name}: util={utilization:.3f}, period={period_us} µs, dl_runtime={dl_runtime_us} µs, runtime_event={actual_runtime_us} µs (overhead: {system_overhead:.1%})")
+            
+        # Define the task structure for the JSON output
+        config["tasks"][task_name] = {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": dl_runtime_us,
+            "dl-period": period_us,
+            "dl-deadline": period_us, # Implicit deadline
+            "cpus": cpu_affinity,
+            "phases": {
+                # A single, infinitely looping phase to represent a periodic task
+                f"phase_{i}": {
+                    "loop": -1, # Loop indefinitely
+                    # The "runtime" event simulates the task's workload
+                    # This is smaller than dl_runtime to account for system overhead
+                    # Using runtime instead of run ensures consistent timing regardless of CPU frequency
+                    "runtime": actual_runtime_us,
+                    # The "timer" event makes the task periodic
+                    # Using absolute mode ensures consistent timing regardless of execution delays
+                    "timer": {"ref": "unique", "period": period_us, "mode": "absolute"}
+                }
+            }
+        }
+
+    if verbose:
+        print(f"Generated {num_tasks} tasks for {num_cpus} CPUs")
+    
+    # Return the configuration as a formatted JSON string
+    return json.dumps(config, indent=4)
+
+def main():
+    """
+    Main function to parse command-line arguments and run the generator.
+    """
+    parser = argparse.ArgumentParser(
+        description="Generate a random taskset for rt-app in JSON format.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    # Arguments for taskset generation
+    parser.add_argument("-c", "--cpus", type=int, help="Number of CPUs.")
+    parser.add_argument("-n", "--tasks", type=int, help="Number of tasks to generate.")
+    parser.add_argument("--min-period", type=int, help="Minimum task period in milliseconds.")
+    parser.add_argument("--max-period", type=int, help="Maximum task period in milliseconds.")
+    parser.add_argument("--max-util", type=float, help="Maximum utilization for a single task (0.0 to 1.0).")
+    parser.add_argument("--total-util", type=float, help="Target total utilization for the taskset. Defaults to 70%% of system capacity.")
+    
+    # Arguments for file I/O
+    parser.add_argument("-o", "--output", type=str, help="Output JSON file name.")
+    parser.add_argument("--config", type=str, help="Path to a JSON configuration file with generator parameters.")
+    
+    # System configuration
+    parser.add_argument("--system-overhead", type=float, default=0.02, help="System overhead as fraction (0.0-1.0). Default: 0.02 (2%%).")
+    
+    # Debugging options
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output for debugging.")
+
+    args = parser.parse_args()
+
+    # --- Configuration Loading ---
+    # Start with an empty config dictionary
+    config_params = {}
+    
+    # Store verbose flag for later use
+    verbose = args.verbose
+
+    # Load from config file first, if provided
+    if args.config:
+        if os.path.exists(args.config):
+            with open(args.config, 'r') as f:
+                config_params = json.load(f)
+            if verbose:
+                print(f"Loaded configuration from '{args.config}': {config_params}")
+        else:
+            print(f"Error: Configuration file not found at '{args.config}'")
+            return
+
+    # Override with command-line arguments.
+    # An argument is considered provided if it's not None.
+    cli_args = {
+        'cpus': args.cpus,
+        'tasks': args.tasks,
+        'min_period': args.min_period,
+        'max_period': args.max_period,
+        'max_util': args.max_util,
+        'total_util': args.total_util,
+        'output': args.output
+    }
+    
+    # Handle system_overhead separately since it has a default value
+    if args.system_overhead != 0.02:  # User explicitly set a different value
+        cli_args['system_overhead'] = args.system_overhead
+    
+    # Filter out None values and update the parameters
+    for key, value in cli_args.items():
+        if value is not None:
+            config_params[key] = value
+            if verbose:
+                print(f"Override: {key} = {value}")
+
+    # --- Set Defaults and Validate ---
+    # Set default values for any parameter that is still missing
+    defaults = {
+        'min_period': 10,
+        'max_period': 100,
+        'max_util': 0.8,
+        'output': 'taskset.json',
+        'system_overhead': 0.02
+    }
+    for key, value in defaults.items():
+        if key not in config_params:
+            config_params[key] = value
+            if verbose:
+                print(f"Default: {key} = {value}")
+
+    # Required parameters must be present now
+    required_params = ['cpus', 'tasks']
+    for param in required_params:
+        if param not in config_params:
+            print(f"Error: Missing required parameter '{param}'. Provide it via command line or config file.")
+            return
+            
+    # Handle the default for total_utilization, which depends on the number of CPUs
+    if 'total_util' not in config_params:
+        config_params['total_util'] = config_params['cpus'] * 0.7
+        if verbose:
+            print(f"Calculated default: total_util = {config_params['total_util']}")
+
+    if verbose:
+        print(f"\nGenerating taskset with parameters:")
+        print(f"  CPUs: {config_params['cpus']}")
+        print(f"  Tasks: {config_params['tasks']}")
+        print(f"  Period range: {config_params['min_period']}-{config_params['max_period']} ms")
+        print(f"  Max task utilization: {config_params['max_util']}")
+        print(f"  Total utilization: {config_params['total_util']}")
+        print(f"  System overhead: {config_params['system_overhead']:.1%}")
+        print()
+    
+    # --- Generate Taskset ---
+    taskset_json = generate_taskset(
+        num_cpus=config_params['cpus'],
+        num_tasks=config_params['tasks'],
+        min_period_ms=config_params['min_period'],
+        max_period_ms=config_params['max_period'],
+        max_task_util=config_params['max_util'],
+        total_utilization=config_params['total_util'],
+        system_overhead=config_params['system_overhead'],
+        verbose=verbose
+    )
+
+    # Write the JSON to the specified output file
+    output_file = config_params['output']
+    with open(output_file, 'w') as f:
+        f.write(taskset_json)
+
+    if verbose:
+        print(f"Generated taskset JSON:")
+        print(taskset_json)
+        print()
+
+    print(f"Successfully generated taskset and saved to '{output_file}'")
+    print(f"To run, use: rt-app {output_file}")
+
+if __name__ == "__main__":
+    main()
