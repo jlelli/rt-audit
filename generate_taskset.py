@@ -55,15 +55,35 @@ def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task
         "tasks": {}
     }
 
+    # Check if the constraint is mathematically possible
+    min_required_util = total_utilization / num_tasks
+    if min_required_util > max_task_util:
+        print(f"Error: Impossible constraint - {num_tasks} tasks with total utilization {total_utilization:.2f}")
+        print(f"  Each task must have utilization >= {min_required_util:.3f}, but max_task_util = {max_task_util:.3f}")
+        print(f"  Solutions:")
+        print(f"    1. Increase max_task_util to at least {min_required_util:.3f}")
+        print(f"    2. Decrease total_utilization to at most {max_task_util * num_tasks:.2f}")
+        print(f"    3. Increase number of tasks")
+        return None
+
     # Generate task utilizations until they meet the max_task_util constraint
+    max_attempts = 1000  # Prevent infinite loops
     attempts = 0
-    while True:
+    while attempts < max_attempts:
         attempts += 1
         task_utils = uunifast(num_tasks, total_utilization)
         if all(u <= max_task_util for u in task_utils):
             if verbose:
                 print(f"Generated valid utilizations after {attempts} attempt(s): {[f'{u:.3f}' for u in task_utils]}")
             break
+    
+    if attempts >= max_attempts:
+        print(f"Error: Failed to generate valid utilizations after {max_attempts} attempts")
+        print(f"  Consider adjusting parameters:")
+        print(f"    - Increase max_task_util (currently {max_task_util:.3f})")
+        print(f"    - Decrease total_utilization (currently {total_utilization:.3f})")
+        print(f"    - Increase number of tasks (currently {num_tasks})")
+        return None
 
     # Create the list of CPU affinities for global scheduling
     cpu_affinity = list(range(num_cpus))
@@ -237,6 +257,13 @@ def main():
         print(f"  Total utilization: {config_params['total_util']}")
         print(f"  System overhead: {config_params['system_overhead']:.1%}")
         print()
+
+    # Warn about potential constraint issues
+    if config_params['tasks'] < config_params['cpus'] // 2:
+        print(f"Warning: Few tasks ({config_params['tasks']}) compared to CPUs ({config_params['cpus']})")
+        print(f"  This may cause constraint violations if total_utilization is too high")
+        print(f"  Consider increasing tasks or decreasing total_utilization")
+        print()
     
     # --- Generate Taskset ---
     taskset_json = generate_taskset(
@@ -249,6 +276,11 @@ def main():
         system_overhead=config_params['system_overhead'],
         verbose=verbose
     )
+
+    # Check if generation failed
+    if taskset_json is None:
+        print("Taskset generation failed. Exiting.")
+        return
 
     # Write the JSON to the specified output file
     output_file = config_params['output']
