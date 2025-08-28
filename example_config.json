@@ -6,5 +6,7 @@
     "max_util": 0.6,
     "total_util": 2.8,
     "system_overhead": 0.03,
+    "lock_pages": true,
+    "ftrace": "none",
     "output": "example_taskset.json"
 }

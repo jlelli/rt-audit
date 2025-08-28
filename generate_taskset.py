@@ -35,7 +35,7 @@ def uunifast(n, u_total):
     utilizations.append(sum_u)
     return utilizations
 
-def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task_util, total_utilization, system_overhead=0.02, verbose=False):
+def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task_util, total_utilization, system_overhead=0.02, lock_pages=True, ftrace="none", verbose=False):
     """
     Generates a random taskset in rt-app's JSON format.
 
@@ -47,6 +47,8 @@ def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task
         max_task_util (float): The maximum utilization for any single task.
         total_utilization (float): The target total utilization for the taskset.
         system_overhead (float): System overhead as fraction (0.0-1.0). Default: 0.02.
+        lock_pages (bool): Lock memory pages in RAM. Default: True.
+        ftrace (str): Ftrace logging categories. Default: "none".
         verbose (bool): Enable verbose output for debugging.
 
     Returns:
@@ -57,7 +59,9 @@ def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task
         "global": {
             "duration": 30,  # Run the simulation for 30 seconds
             "default_policy": "SCHED_DEADLINE",
-            "log_basename": "taskset_log"
+            "log_basename": "taskset_log",
+            "lock_pages": lock_pages,  # Lock memory pages in RAM to prevent RT thread stalling
+            "ftrace": ftrace           # Enable ftrace logging: "none", "main", "task", "run", "loop", "stats" or comma-separated list
         },
         "tasks": {}
     }
@@ -181,6 +185,11 @@ def main():
     # System configuration
     parser.add_argument("--system-overhead", type=float, default=0.02, help="System overhead as fraction (0.0-1.0). Default: 0.02 (2%%).")
     
+    # rt-app global configuration
+    parser.add_argument("--lock-pages", action="store_true", default=True, help="Lock memory pages in RAM (default: True).")
+    parser.add_argument("--no-lock-pages", dest="lock_pages", action="store_false", help="Disable memory page locking.")
+    parser.add_argument("--ftrace", type=str, default="none", help="Enable ftrace logging: 'none', 'main', 'task', 'run', 'loop', 'stats' or comma-separated list (default: 'none').")
+    
     # Debugging options
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output for debugging.")
 
@@ -213,7 +222,9 @@ def main():
         'max_period': args.max_period,
         'max_util': args.max_util,
         'total_util': args.total_util,
-        'output': args.output
+        'output': args.output,
+        'lock_pages': args.lock_pages,
+        'ftrace': args.ftrace
     }
     
     # Handle system_overhead separately since it has a default value
@@ -234,7 +245,9 @@ def main():
         'max_period': 100,
         'max_util': 0.8,
         'output': 'taskset.json',
-        'system_overhead': 0.02
+        'system_overhead': 0.02,
+        'lock_pages': True,
+        'ftrace': 'none'
     }
     for key, value in defaults.items():
         if key not in config_params:
@@ -263,6 +276,9 @@ def main():
         print(f"  Max task utilization: {config_params['max_util']}")
         print(f"  Total utilization: {config_params['total_util']}")
         print(f"  System overhead: {config_params['system_overhead']:.1%}")
+        print(f"  rt-app options:")
+        print(f"    Lock pages: {config_params['lock_pages']}")
+        print(f"    Ftrace: {config_params['ftrace']}")
         print()
 
     # Warn about potential constraint issues
@@ -281,6 +297,8 @@ def main():
         max_task_util=config_params['max_util'],
         total_utilization=config_params['total_util'],
         system_overhead=config_params['system_overhead'],
+        lock_pages=config_params['lock_pages'],
+        ftrace=config_params['ftrace'],
         verbose=verbose
     )
 
