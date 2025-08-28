@@ -12,16 +12,57 @@ import glob
 import re
 import pandas as pd
 
-def print_detailed_stats(title, series):
+def print_detailed_stats(title, series, period=None, runtime=None, show_percentage=False):
     """Helper function to print a formatted block of statistics for a pandas Series."""
-    stats = series.describe(percentiles=[.95, .99])
+    # Choose percentiles based on the metric type
+    if "Slack" in title:
+        # For slack time, we want 5th and 10th percentiles (worst-case scenarios)
+        stats = series.describe(percentiles=[.05, .10])
+        p1_label = "5th Pct"
+        p2_label = "10th Pct"
+        p1_key = "5%"
+        p2_key = "10%"
+    else:
+        # For other metrics (like wakeup latency), we want 95th and 99th percentiles (worst-case scenarios)
+        stats = series.describe(percentiles=[.95, .99])
+        p1_label = "95th Pct"
+        p2_label = "99th Pct"
+        p1_key = "95%"
+        p2_key = "99%"
+    
     print(f"    {title} (µs):")
-    print(f"      - Min:    {stats.get('min', 0):>10.2f}")
-    print(f"      - Avg:    {stats.get('mean', 0):>10.2f}")
-    print(f"      - Max:    {stats.get('max', 0):>10.2f}")
-    print(f"      - Std Dev:{stats.get('std', 0):>10.2f}")
-    print(f"      - 95th Pct:{stats.get('95%', 0):>10.2f}")
-    print(f"      - 99th Pct:{stats.get('99%', 0):>10.2f}")
+    
+    # Calculate percentage if period and runtime are provided
+    if show_percentage and period is not None and runtime is not None:
+        available_time = period - runtime
+        if available_time > 0:
+            min_pct = (stats.get('min', 0) / available_time) * 100
+            avg_pct = (stats.get('mean', 0) / available_time) * 100
+            max_pct = (stats.get('max', 0) / available_time) * 100
+            p1_pct = (stats.get(p1_key, 0) / available_time) * 100
+            p2_pct = (stats.get(p2_key, 0) / available_time) * 100
+            
+            print(f"      - Min:    {stats.get('min', 0):>10.2f} ({min_pct:>6.1f}%)")
+            print(f"      - Avg:    {stats.get('mean', 0):>10.2f} ({avg_pct:>6.1f}%)")
+            print(f"      - Max:    {stats.get('max', 0):>10.2f} ({max_pct:>6.1f}%)")
+            print(f"      - Std Dev:{stats.get('std', 0):>10.2f}")
+            print(f"      - {p1_label}: {stats.get(p1_key, 0):>10.2f} ({p1_pct:>6.1f}%)")
+            print(f"      - {p2_label}: {stats.get(p2_key, 0):>10.2f} ({p2_pct:>6.1f}%)")
+        else:
+            # Fallback to absolute values if calculation not possible
+            print(f"      - Min:    {stats.get('min', 0):>10.2f}")
+            print(f"      - Avg:    {stats.get('mean', 0):>10.2f}")
+            print(f"      - Max:    {stats.get('max', 0):>10.2f}")
+            print(f"      - Std Dev:{stats.get('std', 0):>10.2f}")
+            print(f"      - {p1_label}: {stats.get(p1_key, 0):>10.2f}")
+            print(f"      - {p2_label}: {stats.get(p2_key, 0):>10.2f}")
+    else:
+        print(f"      - Min:    {stats.get('min', 0):>10.2f}")
+        print(f"      - Avg:    {stats.get('mean', 0):>10.2f}")
+        print(f"      - Max:    {stats.get('max', 0):>10.2f}")
+        print(f"      - Std Dev:{stats.get('std', 0):>10.2f}")
+        print(f"      - {p1_label}: {stats.get(p1_key, 0):>10.2f}")
+        print(f"      - {p2_label}: {stats.get(p2_key, 0):>10.2f}")
 
 
 def analyze_logs():
@@ -67,12 +108,23 @@ def analyze_logs():
             # Find the worst deadline miss (most negative slack)
             max_slack_violation = deadline_misses['slack'].min() if num_misses > 0 else 0
 
+            # Extract period and configured runtime information for percentage calculations
+            # Use the first row values as they should be consistent for the task
+            if len(df) > 0:
+                period = df.iloc[0].get('c_period', None)
+                configured_runtime = df.iloc[0].get('c_duration', None)
+            else:
+                period = None
+                configured_runtime = None
+
             # Store detailed statistics for slack and wakeup latency
             task_stats = {
                 'deadline_misses': num_misses,
                 'max_slack_violation_us': max_slack_violation,
                 'slack_series': df['slack'],
-                'wu_lat_series': df['wu_lat']
+                'wu_lat_series': df['wu_lat'],
+                'period': period,
+                'configured_runtime': configured_runtime
             }
             
             all_task_stats[task_name] = task_stats
@@ -94,7 +146,13 @@ def analyze_logs():
         if stats['deadline_misses'] > 0:
             print(f"  - Max Slack Violation: {stats['max_slack_violation_us']:.2f} µs")
         
-        print_detailed_stats("Slack Time", stats['slack_series'])
+        # Show task configuration if available
+        if stats['period'] is not None and stats['configured_runtime'] is not None:
+            available_time = stats['period'] - stats['configured_runtime']
+            print(f"  - Configuration: period={stats['period']} µs, runtime={stats['configured_runtime']} µs, slack={available_time} µs")
+        
+        print_detailed_stats("Slack Time", stats['slack_series'], 
+                           stats['period'], stats['configured_runtime'], show_percentage=True)
         print_detailed_stats("Wakeup Latency", stats['wu_lat_series'])
 
 
@@ -112,7 +170,6 @@ def analyze_logs():
         worst_violation = combined_df[combined_df['slack'] < 0]['slack'].min()
         print(f"Worst Slack Violation: {worst_violation:.2f} µs")
     
-    print_detailed_stats("Overall Slack Time", combined_df['slack'])
     print_detailed_stats("Overall Wakeup Latency", combined_df['wu_lat'])
     print("="*45)
 
