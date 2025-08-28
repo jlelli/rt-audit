@@ -223,13 +223,16 @@ def main():
         'max_util': args.max_util,
         'total_util': args.total_util,
         'output': args.output,
-        'lock_pages': args.lock_pages,
         'ftrace': args.ftrace
     }
     
     # Handle system_overhead separately since it has a default value
     if args.system_overhead != 0.02:  # User explicitly set a different value
         cli_args['system_overhead'] = args.system_overhead
+    
+    # Handle lock_pages separately since it has a default value
+    if args.lock_pages != True:  # User explicitly set a different value
+        cli_args['lock_pages'] = args.lock_pages
     
     # Filter out None values and update the parameters
     for key, value in cli_args.items():
