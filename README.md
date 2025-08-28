@@ -234,6 +234,14 @@ This project is licensed under the GNU General Public License v2 - see the [LICE
 - **Real-time Research**: UUniFast and GFB algorithms
 - **SCHED_DEADLINE Maintainers**: Ongoing scheduler development
 
+## 👥 Authors
+
+**RT-Audit** was developed by:
+
+- **Juri Lelli** <juri.lelli@redhat.com> - Main developer and SCHED_DEADLINE maintainer
+- **Google Gemini** - AI assistance for code generation and optimization
+- **Cursor** - AI-powered code editor for development assistance
+
 ## 📞 Support
 
 For questions, issues, or contributions:
