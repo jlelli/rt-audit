@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+RT-Audit: Real-Time Taskset Auditor
+Performance Log Analyzer for SCHED_DEADLINE Testing
+
+This script analyzes rt-app execution logs to provide performance metrics,
+deadline miss detection, and statistical analysis of real-time behavior.
+"""
 
 import os
 import glob

@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+RT-Audit: Real-Time Taskset Auditor
+Dependency Checker and Environment Validator
+
+This script validates the system environment for RT-Audit, checking
+Python dependencies, kernel support, and external tool availability.
+"""
 
 import subprocess
 import sys
@@ -179,7 +186,7 @@ def provide_installation_guide():
 
 def main():
     """Main dependency checker."""
-    print("🔍 SCHED_DEADLINE Testing Toolkit - Dependency Checker")
+    print("🔍 RT-Audit - Real-Time Taskset Auditor - Dependency Checker")
     print("=" * 60)
     
     all_good = True
@@ -207,7 +214,7 @@ def main():
     
     if all_good:
         print("✅ All dependencies are satisfied!")
-        print("   You can now use the SCHED_DEADLINE testing toolkit.")
+        print("   You can now use RT-Audit for real-time taskset analysis.")
     else:
         print("❌ Some dependencies are missing.")
         print("   Please install the missing components before proceeding.")

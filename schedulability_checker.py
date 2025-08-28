@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+RT-Audit: Real-Time Taskset Auditor
+Schedulability Checker for SCHED_DEADLINE Tasksets
+
+This script validates the theoretical schedulability of real-time tasksets
+using the GFB (Goossens, Funk, and Baruah) test for global EDF scheduling.
+"""
 
 import json
 import argparse

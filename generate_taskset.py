@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+RT-Audit: Real-Time Taskset Auditor
+Workload Generator for SCHED_DEADLINE Testing
+
+This script generates synthetic real-time workloads using the UUniFast algorithm
+to create realistic SCHED_DEADLINE tasksets for rt-app testing.
+"""
 
 import json
 import random

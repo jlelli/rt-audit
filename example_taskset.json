@@ -1,0 +1,873 @@
+{
+    "global": {
+        "duration": 30,
+        "default_policy": "SCHED_DEADLINE",
+        "log_basename": "taskset_log"
+    },
+    "tasks": {
+        "task_0": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 22201,
+            "dl-period": 104000,
+            "dl-deadline": 104000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_0": {
+                    "loop": -1,
+                    "runtime": 21534,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 104000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_1": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 52846,
+            "dl-period": 167000,
+            "dl-deadline": 167000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_1": {
+                    "loop": -1,
+                    "runtime": 51260,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 167000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_2": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 5324,
+            "dl-period": 52000,
+            "dl-deadline": 52000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_2": {
+                    "loop": -1,
+                    "runtime": 5164,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 52000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_3": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 1191,
+            "dl-period": 69000,
+            "dl-deadline": 69000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_3": {
+                    "loop": -1,
+                    "runtime": 1155,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 69000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_4": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 9234,
+            "dl-period": 54000,
+            "dl-deadline": 54000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_4": {
+                    "loop": -1,
+                    "runtime": 8956,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 54000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_5": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 5562,
+            "dl-period": 63000,
+            "dl-deadline": 63000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_5": {
+                    "loop": -1,
+                    "runtime": 5395,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 63000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_6": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 28999,
+            "dl-period": 177000,
+            "dl-deadline": 177000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_6": {
+                    "loop": -1,
+                    "runtime": 28129,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 177000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_7": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 15070,
+            "dl-period": 50000,
+            "dl-deadline": 50000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_7": {
+                    "loop": -1,
+                    "runtime": 14617,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 50000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_8": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 9004,
+            "dl-period": 38000,
+            "dl-deadline": 38000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_8": {
+                    "loop": -1,
+                    "runtime": 8733,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 38000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_9": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 7881,
+            "dl-period": 70000,
+            "dl-deadline": 70000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_9": {
+                    "loop": -1,
+                    "runtime": 7644,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 70000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_10": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 27569,
+            "dl-period": 76000,
+            "dl-deadline": 76000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_10": {
+                    "loop": -1,
+                    "runtime": 26741,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 76000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_11": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 17077,
+            "dl-period": 53000,
+            "dl-deadline": 53000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_11": {
+                    "loop": -1,
+                    "runtime": 16564,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 53000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_12": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 37957,
+            "dl-period": 195000,
+            "dl-deadline": 195000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_12": {
+                    "loop": -1,
+                    "runtime": 36818,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 195000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_13": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 5471,
+            "dl-period": 82000,
+            "dl-deadline": 82000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_13": {
+                    "loop": -1,
+                    "runtime": 5306,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 82000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_14": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 8653,
+            "dl-period": 37000,
+            "dl-deadline": 37000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_14": {
+                    "loop": -1,
+                    "runtime": 8393,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 37000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_15": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 34740,
+            "dl-period": 157000,
+            "dl-deadline": 157000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_15": {
+                    "loop": -1,
+                    "runtime": 33697,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 157000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_16": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 27494,
+            "dl-period": 147000,
+            "dl-deadline": 147000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_16": {
+                    "loop": -1,
+                    "runtime": 26669,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 147000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_17": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 12448,
+            "dl-period": 187000,
+            "dl-deadline": 187000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_17": {
+                    "loop": -1,
+                    "runtime": 12074,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 187000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_18": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 24206,
+            "dl-period": 128000,
+            "dl-deadline": 128000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_18": {
+                    "loop": -1,
+                    "runtime": 23479,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 128000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_19": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 4664,
+            "dl-period": 90000,
+            "dl-deadline": 90000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_19": {
+                    "loop": -1,
+                    "runtime": 4524,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 90000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_20": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 8001,
+            "dl-period": 44000,
+            "dl-deadline": 44000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_20": {
+                    "loop": -1,
+                    "runtime": 7760,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 44000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_21": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 5177,
+            "dl-period": 52000,
+            "dl-deadline": 52000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_21": {
+                    "loop": -1,
+                    "runtime": 5021,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 52000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_22": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 10445,
+            "dl-period": 117000,
+            "dl-deadline": 117000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_22": {
+                    "loop": -1,
+                    "runtime": 10131,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 117000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_23": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 12664,
+            "dl-period": 88000,
+            "dl-deadline": 88000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_23": {
+                    "loop": -1,
+                    "runtime": 12284,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 88000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_24": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 12732,
+            "dl-period": 190000,
+            "dl-deadline": 190000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_24": {
+                    "loop": -1,
+                    "runtime": 12350,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 190000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_25": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 1426,
+            "dl-period": 67000,
+            "dl-deadline": 67000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_25": {
+                    "loop": -1,
+                    "runtime": 1383,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 67000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_26": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 9836,
+            "dl-period": 170000,
+            "dl-deadline": 170000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_26": {
+                    "loop": -1,
+                    "runtime": 9540,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 170000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_27": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 11132,
+            "dl-period": 86000,
+            "dl-deadline": 86000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_27": {
+                    "loop": -1,
+                    "runtime": 10798,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 86000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_28": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 22657,
+            "dl-period": 128000,
+            "dl-deadline": 128000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_28": {
+                    "loop": -1,
+                    "runtime": 21977,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 128000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_29": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 11869,
+            "dl-period": 51000,
+            "dl-deadline": 51000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_29": {
+                    "loop": -1,
+                    "runtime": 11512,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 51000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_30": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 16553,
+            "dl-period": 55000,
+            "dl-deadline": 55000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_30": {
+                    "loop": -1,
+                    "runtime": 16056,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 55000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        },
+        "task_31": {
+            "policy": "SCHED_DEADLINE",
+            "dl-runtime": 2060,
+            "dl-period": 26000,
+            "dl-deadline": 26000,
+            "cpus": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "phases": {
+                "phase_31": {
+                    "loop": -1,
+                    "runtime": 1998,
+                    "timer": {
+                        "ref": "unique",
+                        "period": 26000,
+                        "mode": "absolute"
+                    }
+                }
+            }
+        }
+    }
+}

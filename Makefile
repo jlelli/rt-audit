@@ -1,11 +1,11 @@
-# SCHED_DEADLINE Testing Toolkit Makefile
+# RT-Audit - Real-Time Taskset Auditor Makefile
 # Provides easy targets for dependency management and testing
 
 .PHONY: help check-deps install-deps test clean install
 
 # Default target
 help:
-	@echo "SCHED_DEADLINE Testing Toolkit - Available Targets:"
+	@echo "RT-Audit - Real-Time Taskset Auditor - Available Targets:"
 	@echo ""
 	@echo "Dependencies:"
 	@echo "  check-deps     - Check if all dependencies are satisfied"
@@ -111,17 +111,17 @@ install:
 	@sudo chmod +x /usr/local/bin/schedulability_checker
 	@sudo chmod +x /usr/local/bin/analyze_logs
 	@sudo chmod +x /usr/local/bin/check_deps
-	@echo "✅ Toolkit installed successfully!"
+	@echo "✅ RT-Audit installed successfully!"
 	@echo "   Commands available: generate_taskset, schedulability_checker, analyze_logs, check_deps"
 
 # Uninstall toolkit from system PATH
 uninstall:
-	@echo "🗑️  Uninstalling toolkit from system PATH..."
+	@echo "🗑️  Uninstalling RT-Audit from system PATH..."
 	@sudo rm -f /usr/local/bin/generate_taskset
 	@sudo rm -f /usr/local/bin/schedulability_checker
 	@sudo rm -f /usr/local/bin/analyze_logs
 	@sudo rm -f /usr/local/bin/check_deps
-	@echo "✅ Toolkit uninstalled successfully!"
+	@echo "✅ RT-Audit uninstalled successfully!"
 
 # Clean generated files
 clean:
@@ -150,5 +150,5 @@ info:
 # Quick setup (check deps and install if needed)
 setup: check-deps
 	@echo ""
-	@echo "🚀 Quick setup completed!"
+	@echo "🚀 RT-Audit setup completed!"
 	@echo "Run 'make test' to verify everything works correctly."

@@ -5,8 +5,8 @@
 
 set -e
 
-echo "🚀 SCHED_DEADLINE Testing Toolkit - Quick Setup"
-echo "================================================"
+echo "🚀 RT-Audit - Real-Time Taskset Auditor - Quick Setup"
+echo "======================================================="
 
 # Check if we're in the right directory
 if [ ! -f "generate_taskset.py" ]; then
