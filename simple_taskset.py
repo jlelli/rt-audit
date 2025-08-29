@@ -85,6 +85,7 @@ def convert_to_rtapp(taskset):
     lock_pages = taskset.get("lock_pages", True)
     ftrace = taskset.get("ftrace", "none")
     system_overhead = taskset.get("system_overhead", 0.02)
+    event_type = taskset.get("event_type", "runtime")
     
     # Create rt-app format
     rtapp_config = {
@@ -114,7 +115,7 @@ def convert_to_rtapp(taskset):
             dl_runtime = runtime
         
         # Create rt-app task structure
-        rtapp_config["tasks"][task_name] = {
+        task_config = {
             "policy": "SCHED_DEADLINE",
             "dl-runtime": dl_runtime,      # Scaled up for overhead
             "dl-period": period,
@@ -122,16 +123,28 @@ def convert_to_rtapp(taskset):
             "cpus": list(range(cpus)),
             "phases": {
                 f"phase_{i}": {
-                    "loop": -1,
-                    "runtime": runtime,    # Actual required runtime
-                    "timer": {
-                        "ref": "unique",
-                        "period": period,
-                        "mode": "absolute"
-                    }
+                    "loop": -1
                 }
             }
         }
+
+        # Add workload events based on the specified event type
+        if event_type == "run":
+            # Use "run" event: workload-based execution (varies with CPU frequency)
+            # The run event executes for a fixed number of loops based on calibration
+            task_config["phases"][f"phase_{i}"]["run"] = runtime
+        elif event_type == "runtime":
+            # Use "runtime" event: time-based execution (consistent regardless of CPU frequency)
+            # This is the current default behavior
+            task_config["phases"][f"phase_{i}"]["runtime"] = runtime
+        else:
+            # Default to runtime if invalid event_type specified
+            task_config["phases"][f"phase_{i}"]["runtime"] = runtime
+
+        # Add timer event AFTER workload events (rt-app requirement)
+        task_config["phases"][f"phase_{i}"]["timer"] = {"ref": "unique", "period": period, "mode": "absolute"}
+
+        rtapp_config["tasks"][task_name] = task_config
     
     return rtapp_config
 
@@ -148,12 +161,13 @@ network_task,2000,15000,15000"""
     with open("example_taskset.csv", "w") as f:
         f.write(csv_content)
     
-    # YAML example with system configuration
-    yaml_content = """cpus: 4
+    # YAML example with runtime events (time-based, consistent timing)
+    runtime_yaml_content = """cpus: 4
 duration: 30
 lock_pages: true
 ftrace: "none"
 system_overhead: 0.02
+event_type: "runtime"
 tasks:
   - name: "audio_task"
     runtime: 1000
@@ -173,20 +187,43 @@ tasks:
     runtime: 2000
     period: 15000"""
     
-    with open("example_taskset.yaml", "w") as f:
-        f.write(yaml_content)
+    with open("example_runtime.yaml", "w") as f:
+        f.write(runtime_yaml_content)
+
+    # YAML example with run events (workload-based, varies with CPU frequency)
+    run_yaml_content = """cpus: 4
+duration: 30
+lock_pages: true
+ftrace: "run,loop,stats"
+system_overhead: 0.02
+event_type: "run"
+tasks:
+  - name: "cpu_intensive_task"
+    runtime: 2000
+    period: 8000
     
-    # Python dict example with system configuration
+  - name: "io_bound_task"
+    runtime: 500
+    period: 12000"""
+    
+    with open("example_run.yaml", "w") as f:
+        f.write(run_yaml_content)
+
+
+    
+    # Python dict example with system configuration and event types
     python_content = """#!/usr/bin/env python3
-# Example Python taskset specification
+# Example Python taskset specification with different event types
 from simple_taskset import convert_and_save
 
-taskset = {
+# Example 1: Runtime events (time-based execution)
+runtime_taskset = {
     "cpus": 4,
     "duration": 30,
     "lock_pages": True,
     "ftrace": "none",
     "system_overhead": 0.02,
+    "event_type": "runtime",
     "tasks": [
         {"name": "audio_task", "runtime": 1000, "period": 10000, "deadline": 10000},
         {"name": "video_task", "runtime": 5000, "period": 20000},
@@ -195,52 +232,36 @@ taskset = {
     ]
 }
 
-# Convert and save
-convert_and_save(taskset, "generated_taskset.json")
-print("Taskset converted and saved!")
-"""
+# Example 2: Run events (workload-based execution)
+run_taskset = {
+    "cpus": 4,
+    "duration": 30,
+    "lock_pages": True,
+    "ftrace": "run,loop,stats",
+    "system_overhead": 0.02,
+    "event_type": "run",
+    "tasks": [
+        {"name": "cpu_intensive", "runtime": 2000, "period": 8000},
+        {"name": "io_bound", "runtime": 500, "period": 12000}
+    ]
+}
+
+# Convert and save examples
+convert_and_save(runtime_taskset, "runtime_taskset.json")
+convert_and_save(run_taskset, "run_taskset.json")
+
+print("Example tasksets converted and saved!")
+print("- runtime_taskset.json: Time-based execution (consistent timing)")
+print("- run_taskset.json: Workload-based execution (varies with CPU frequency)")"""
     
     with open("example_taskset.py", "w") as f:
         f.write(python_content)
     
-    # Advanced YAML example with different system configurations
-    advanced_yaml_content = """# Advanced system configuration example
-cpus: 8
-duration: 120
-lock_pages: true
-ftrace: "main,task,run"  # Enable comprehensive tracing
-system_overhead: 0.05    # 5% system overhead
-
-tasks:
-  - name: "high_freq_sensor"
-    runtime: 100
-    period: 1000         # 1kHz sensor reading
-    
-  - name: "control_loop"
-    runtime: 500
-    period: 2000         # 500Hz control loop
-    
-  - name: "data_processing"
-    runtime: 2000
-    period: 10000        # 100Hz processing
-    
-  - name: "network_comm"
-    runtime: 1500
-    period: 50000        # 20Hz network communication
-    
-  - name: "logging_task"
-    runtime: 300
-    period: 100000       # 10Hz logging
-"""
-    
-    with open("example_advanced.yaml", "w") as f:
-        f.write(advanced_yaml_content)
-    
     print("Created example files:")
     print("  - example_taskset.csv")
-    print("  - example_taskset.yaml") 
+    print("  - example_runtime.yaml (runtime events)")
+    print("  - example_run.yaml (run events)")
     print("  - example_taskset.py")
-    print("  - example_advanced.yaml")
 
 def convert_and_save(taskset, output_file):
     """

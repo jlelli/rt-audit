@@ -8,5 +8,6 @@
     "system_overhead": 0.03,
     "lock_pages": true,
     "ftrace": "none",
+    "event_type": "runtime",
     "output": "example_taskset.json"
 }

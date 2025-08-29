@@ -34,6 +34,7 @@ RT-Audit consists of four core components that work together to provide end-to-e
 ### 1. **generate_taskset.py** - Workload Generator
 - **UUniFast Algorithm**: Generates realistic task utilizations
 - **SCHED_DEADLINE Support**: Creates rt-app compatible JSON configurations
+- **Event Type Support**: Supports `run` and `runtime` workload events
 - **Configurable Parameters**: CPU count, task count, periods, utilizations
 - **System Overhead**: Accounts for real-world scheduling overhead
 - **Flexible Input**: Command-line arguments and configuration files
@@ -41,6 +42,7 @@ RT-Audit consists of four core components that work together to provide end-to-e
 ### 1.5. **simple_taskset.py** - Human-Friendly Converter
 - **Multiple Formats**: Supports CSV, YAML, and Python input formats
 - **Easy Specification**: Simple, intuitive task definition syntax
+- **Event Type Support**: Configurable workload events (`run`, `runtime`)
 - **Auto-Conversion**: Automatically generates full rt-app JSON format
 - **Manual Design**: Perfect for manually designing specific tasksets
 
@@ -129,6 +131,9 @@ python3 analyze_logs.py
 # Generate with specific parameters
 python3 generate_taskset.py -c 4 -n 6 --max-util 0.8 --system-overhead 0.05
 
+# Generate with specific event type
+python3 generate_taskset.py -c 4 -n 6 --event-type run --max-util 0.8
+
 # Verbose mode for debugging
 python3 generate_taskset.py --config config.json -v
 
@@ -151,6 +156,11 @@ make help
 - **Default**: 2% system overhead
 - **Purpose**: Accounts for context switching and scheduling overhead
 - **Impact**: Makes runtime smaller than deadline runtime for realism
+
+### Workload Event Types
+- **`run`**: Workload-based execution that varies with CPU frequency
+- **`runtime`**: Time-based execution with consistent timing regardless of CPU frequency
+- **Default**: `runtime` for consistent timing behavior
 
 ### Timer Configuration
 - **Absolute Mode**: Consistent timing regardless of execution delays
@@ -222,6 +232,22 @@ make info
 - **dl-period**: Task period (implicit deadline = period)
 - **dl-deadline**: Absolute deadline (defaults to period)
 - **Policy**: SCHED_DEADLINE scheduling class
+
+### RT-App Workload Events
+
+#### Run Events (`run`)
+- **Behavior**: Executes for a fixed number of loops based on CPU calibration
+- **Timing**: Duration varies with CPU frequency and compute capacity
+- **Use Case**: CPU-intensive workloads where actual work performed matters more than time
+- **Example**: `"run": 1000` executes ~1000 loops regardless of how long it takes
+
+#### Runtime Events (`runtime`)
+- **Behavior**: Executes for a fixed amount of time
+- **Timing**: Duration is consistent regardless of CPU frequency or compute capacity
+- **Use Case**: Real-time applications requiring precise timing guarantees
+- **Example**: `"runtime": 1000` executes for exactly 1000 microseconds
+
+
 
 ### UUniFast Algorithm
 - **Purpose**: Generate task utilizations with realistic distribution

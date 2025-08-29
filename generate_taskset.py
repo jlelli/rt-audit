@@ -35,7 +35,7 @@ def uunifast(n, u_total):
     utilizations.append(sum_u)
     return utilizations
 
-def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task_util, total_utilization, system_overhead=0.02, lock_pages=True, ftrace="none", verbose=False):
+def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task_util, total_utilization, system_overhead=0.02, lock_pages=True, ftrace="none", event_type="runtime", verbose=False):
     """
     Generates a random taskset in rt-app's JSON format.
 
@@ -49,6 +49,7 @@ def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task
         system_overhead (float): System overhead as fraction (0.0-1.0). Default: 0.02.
         lock_pages (bool): Lock memory pages in RAM. Default: True.
         ftrace (str): Ftrace logging categories. Default: "none".
+        event_type (str): Type of workload event: "run" or "runtime". Default: "runtime".
         verbose (bool): Enable verbose output for debugging.
 
     Returns:
@@ -113,8 +114,8 @@ def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task
         # This represents the maximum time the task can execute within its deadline
         dl_runtime_us = math.floor(utilization * period_us)
 
-        # Apply system overhead to get the actual runtime for the "run" event
-        # The run event should be smaller than dl_runtime to account for system overhead
+        # Apply system overhead to get the actual runtime for the workload events
+        # The workload events should be smaller than dl_runtime to account for system overhead
         actual_runtime_us = math.floor(dl_runtime_us * (1.0 - system_overhead))
 
         # Enforce a minimum runtime. This is a pragmatic trade-off.
@@ -132,10 +133,10 @@ def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task
                 print(f"  {task_name}: Adjusted actual runtime from {math.floor(dl_runtime_us * (1.0 - system_overhead))} to {actual_runtime_us} µs (min runtime enforced)")
         
         if verbose:
-            print(f"  {task_name}: util={utilization:.3f}, period={period_us} µs, dl_runtime={dl_runtime_us} µs, runtime_event={actual_runtime_us} µs (overhead: {system_overhead:.1%})")
+            print(f"  {task_name}: util={utilization:.3f}, period={period_us} µs, dl_runtime={dl_runtime_us} µs, workload_event={actual_runtime_us} µs (overhead: {system_overhead:.1%})")
             
         # Define the task structure for the JSON output
-        config["tasks"][task_name] = {
+        task_config = {
             "policy": "SCHED_DEADLINE",
             "dl-runtime": dl_runtime_us,
             "dl-period": period_us,
@@ -144,20 +145,31 @@ def generate_taskset(num_cpus, num_tasks, min_period_ms, max_period_ms, max_task
             "phases": {
                 # A single, infinitely looping phase to represent a periodic task
                 f"phase_{i}": {
-                    "loop": -1, # Loop indefinitely
-                    # The "runtime" event simulates the task's workload
-                    # This is smaller than dl_runtime to account for system overhead
-                    # Using runtime instead of run ensures consistent timing regardless of CPU frequency
-                    "runtime": actual_runtime_us,
-                    # The "timer" event makes the task periodic
-                    # Using absolute mode ensures consistent timing regardless of execution delays
-                    "timer": {"ref": "unique", "period": period_us, "mode": "absolute"}
+                    "loop": -1 # Loop indefinitely
                 }
             }
         }
 
+        # Add workload events based on the specified event type
+        if event_type == "run":
+            # Use "run" event: workload-based execution (varies with CPU frequency)
+            # The run event executes for a fixed number of loops based on calibration
+            task_config["phases"][f"phase_{i}"]["run"] = actual_runtime_us
+        elif event_type == "runtime":
+            # Use "runtime" event: time-based execution (consistent regardless of CPU frequency)
+            # This is the current default behavior
+            task_config["phases"][f"phase_{i}"]["runtime"] = actual_runtime_us
+        else:
+            # Default to runtime if invalid event_type specified
+            task_config["phases"][f"phase_{i}"]["runtime"] = actual_runtime_us
+
+        # Add timer event AFTER workload events (rt-app requirement)
+        task_config["phases"][f"phase_{i}"]["timer"] = {"ref": "unique", "period": period_us, "mode": "absolute"}
+
+        config["tasks"][task_name] = task_config
+
     if verbose:
-        print(f"Generated {num_tasks} tasks for {num_cpus} CPUs")
+        print(f"Generated {num_tasks} tasks for {num_cpus} CPUs using {event_type} events")
     
     # Return the configuration as a formatted JSON string
     return json.dumps(config, indent=4)
@@ -190,6 +202,9 @@ def main():
     parser.add_argument("--no-lock-pages", dest="lock_pages", action="store_false", help="Disable memory page locking.")
     parser.add_argument("--ftrace", type=str, default="none", help="Enable ftrace logging: 'none', 'main', 'task', 'run', 'loop', 'stats' or comma-separated list (default: 'none').")
     
+    # Event type for workload events
+    parser.add_argument("--event-type", type=str, default="runtime", choices=["run", "runtime"], help="Type of workload event: 'run' or 'runtime' (default: 'runtime').")
+
     # Debugging options
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output for debugging.")
 
@@ -234,6 +249,10 @@ def main():
     if args.lock_pages != True:  # User explicitly set a different value
         cli_args['lock_pages'] = args.lock_pages
     
+    # Handle event_type separately since it has a default value
+    if args.event_type != "runtime":  # User explicitly set a different value
+        cli_args['event_type'] = args.event_type
+    
     # Filter out None values and update the parameters
     for key, value in cli_args.items():
         if value is not None:
@@ -250,7 +269,8 @@ def main():
         'output': 'taskset.json',
         'system_overhead': 0.02,
         'lock_pages': True,
-        'ftrace': 'none'
+        'ftrace': 'none',
+        'event_type': 'runtime'
     }
     for key, value in defaults.items():
         if key not in config_params:
@@ -282,6 +302,7 @@ def main():
         print(f"  rt-app options:")
         print(f"    Lock pages: {config_params['lock_pages']}")
         print(f"    Ftrace: {config_params['ftrace']}")
+        print(f"    Event type: {config_params['event_type']}")
         print()
 
     # Warn about potential constraint issues
@@ -302,6 +323,7 @@ def main():
         system_overhead=config_params['system_overhead'],
         lock_pages=config_params['lock_pages'],
         ftrace=config_params['ftrace'],
+        event_type=config_params['event_type'],
         verbose=verbose
     )
 

@@ -14,6 +14,7 @@ help:
 	@echo "Testing:"
 	@echo "  test          - Run a complete test workflow"
 	@echo "  test-generate - Test taskset generation"
+	@echo "  test-events   - Test different event types (run, runtime, both)"
 	@echo "  test-check    - Test schedulability checking"
 	@echo "  test-analyze  - Test log analysis (if logs exist)"
 	@echo ""
@@ -68,6 +69,15 @@ test-generate:
 	@echo "🧪 Testing taskset generation..."
 	@python3 generate_taskset.py --config example_config.json -v
 	@echo "✅ Generation test completed!"
+
+# Test different event types
+test-events:
+	@echo "🧪 Testing different event types..."
+	@echo "Testing runtime events..."
+	@python3 generate_taskset.py -c 2 -n 3 --event-type runtime --verbose
+	@echo "Testing run events..."
+	@python3 generate_taskset.py -c 2 -n 3 --event-type run --verbose
+	@echo "✅ Event type tests completed!"
 
 # Test schedulability checking
 test-check:
