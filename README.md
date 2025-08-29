@@ -40,9 +40,11 @@ RT-Audit consists of four core components that work together to provide end-to-e
 
 ### 2. **schedulability_checker.py** - Theoretical Validator
 - **GFB Test**: Goossens, Funk, and Baruah schedulability test
+- **BCL Test**: Bertogna, Cirinei, and Lipari schedulability test
 - **Global EDF**: Validates multiprocessor real-time scheduling
 - **Utilization Analysis**: Per-task and aggregate utilization metrics
 - **Constraint Validation**: Ensures mathematical feasibility
+- **Combined Analysis**: Uses both tests for broader coverage
 
 ### 3. **analyze_logs.py** - Performance Analyzer
 - **Log Parsing**: Processes rt-app execution logs
@@ -88,7 +90,7 @@ make test
 # 1. Generate a taskset
 python3 generate_taskset.py --config example_config.json
 
-# 2. Validate schedulability
+# 2. Validate schedulability (GFB + BCL tests)
 python3 schedulability_checker.py taskset.json
 
 # 3. Execute real-time test
@@ -149,10 +151,14 @@ make help
 
 ### Schedulability Results
 ```
-✅ The taskset IS SCHEDULABLE according to the GFB test.
+✅ The taskset IS SCHEDULABLE according to BOTH tests.
 Total Utilization: 2.800
 Maximum Task Utilization: 0.600
 GFB Schedulability Bound: 3.200
+
+BCL Test Results:
+Task: task_0 - BCL schedulable: ✅
+Task: task_1 - BCL schedulable: ✅
 ```
 
 ### Performance Metrics
@@ -208,11 +214,29 @@ make info
 - **Method**: Recursive random sampling with scaling
 - **Validation**: Ensures max_task_util constraint satisfaction
 
-### GFB Schedulability Test
+### Schedulability Tests
+
+#### GFB (Goossens, Funk, and Baruah) Test
 - **Condition**: U_total ≤ m - (m-1) × U_max
 - **Where**: m = number of CPUs, U_max = maximum task utilization
 - **Applicability**: Global EDF scheduling on multiprocessors
 - **Sufficient**: Pass implies schedulability (not necessary)
+- **Complexity**: O(n) where n is the number of tasks
+
+#### BCL (Bertogna, Cirinei, and Lipari) Test
+- **Condition**: For each task τk, either:
+  1. ∑ i ≠ k min(βi, 1 − λk) < m(1 − λk), OR
+  2. ∑ i ≠ k min(βi, 1 − λk) = m(1 − λk) AND ∃i ≠ k : 0 < βi ≤ 1 − λk
+- **Where**: λk = Ck/Dk, βi = (NiCi + min(Ci, (Dk − NiTi)0)) / Dk
+- **Applicability**: Global EDF scheduling, effective for heavy tasks
+- **Sufficient**: Pass implies schedulability (not necessary)
+- **Complexity**: O(n²) where n is the number of tasks
+- **Advantage**: Better detection for high-utilization task sets
+
+#### Combined Approach
+- **Strategy**: Apply GFB first (faster), then BCL if needed
+- **Coverage**: Broader schedulability detection than either test alone
+- **Performance**: O(n²) worst-case, but often much better in practice
 
 ## 🤝 Contributing
 
