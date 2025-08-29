@@ -38,6 +38,12 @@ RT-Audit consists of four core components that work together to provide end-to-e
 - **System Overhead**: Accounts for real-world scheduling overhead
 - **Flexible Input**: Command-line arguments and configuration files
 
+### 1.5. **simple_taskset.py** - Human-Friendly Converter
+- **Multiple Formats**: Supports CSV, YAML, and Python input formats
+- **Easy Specification**: Simple, intuitive task definition syntax
+- **Auto-Conversion**: Automatically generates full rt-app JSON format
+- **Manual Design**: Perfect for manually designing specific tasksets
+
 ### 2. **schedulability_checker.py** - Theoretical Validator
 - **GFB Test**: Goossens, Funk, and Baruah schedulability test
 - **BCL Test**: Bertogna, Cirinei, and Lipari schedulability test
@@ -90,6 +96,9 @@ make test
 # 1. Generate a taskset
 python3 generate_taskset.py --config example_config.json
 
+# 1.5. OR manually specify a simple taskset
+python3 simple_taskset.py design.yaml -o taskset.json
+
 # 2. Validate schedulability (GFB + BCL tests)
 python3 schedulability_checker.py taskset.json
 
@@ -122,6 +131,12 @@ python3 generate_taskset.py -c 4 -n 6 --max-util 0.8 --system-overhead 0.05
 
 # Verbose mode for debugging
 python3 generate_taskset.py --config config.json -v
+
+# Convert simple taskset specification
+python3 simple_taskset.py design.yaml -o taskset.json
+
+# Create example input files
+python3 simple_taskset.py --create-examples
 
 # Check dependencies
 python3 check_deps.py
