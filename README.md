@@ -263,6 +263,7 @@ make info
 - **Applicability**: Global EDF scheduling on multiprocessors
 - **Sufficient**: Pass implies schedulability (not necessary)
 - **Complexity**: O(n) where n is the number of tasks
+- **Reference**: Goossens, J., Funk, S., and Baruah, S. (2003). Priority-driven scheduling of periodic task systems on multiprocessors. Real-Time Systems, 25(2-3), 187–205.
 
 #### BCL (Bertogna, Cirinei, and Lipari) Test
 - **Condition**: For each task τk, either:
@@ -273,6 +274,7 @@ make info
 - **Sufficient**: Pass implies schedulability (not necessary)
 - **Complexity**: O(n²) where n is the number of tasks
 - **Advantage**: Better detection for high-utilization task sets
+- **Reference**: Bertogna, M., Cirinei, M., and Lipari, G. (2005). Improved schedulability analysis of EDF on multiprocessor platforms. In Proceedings of the 17th Euromicro Conference on Real-Time Systems (ECRTS 2005), Palma de Mallorca, Spain, pages 209–218. IEEE Computer Society Press.
 
 #### Combined Approach
 - **Strategy**: Apply GFB first (faster), then BCL if needed
