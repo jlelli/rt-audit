@@ -70,7 +70,7 @@ def analyze_logs():
     Analyzes rt-app log files in the current directory to provide per-task
     and aggregate statistics on performance, including deadline misses.
     """
-    log_files = glob.glob("taskset_log-task_*-*.log")
+    log_files = glob.glob("*.log")
 
     if not log_files:
         print("No rt-app log files found in the current directory.")
@@ -83,10 +83,10 @@ def analyze_logs():
     # --- 1. Process Each Log File Individually ---
     for log_file in log_files:
         # Extract the task name from the filename using a regular expression
-        match = re.search(r'taskset_log-(task_\d+)-\d+\.log', log_file)
+        match = re.search(r'(\w+)_log-(\w+)-\d+\.log', log_file)
         if not match:
             continue
-        task_name = match.group(1)
+        task_name = match.group(2)
 
         try:
             # Use pandas to read the log file.
